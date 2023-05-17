@@ -19,9 +19,8 @@ public class Book{
         this.publishDate = publishDate;
     }
 
-    private static final List<Book> books;
+    private static final List<Book> books = new ArrayList<>();
     static{
-        books = new ArrayList<>();
         books.add(new Book(1, "9780544003415", "The Hobbit", "J.R.R. Tolkien", LocalDate.of(1937, 9, 21)));
         books.add(new Book(2, "9780439554930", "Harry Potter and the Sorcerer's Stone", "J.K. Rowling", LocalDate.of(1997, 6, 26)));
         books.add(new Book(3, "9780061120084", "To Kill a Mockingbird", "Harper Lee", LocalDate.of(1960, 7, 11)));

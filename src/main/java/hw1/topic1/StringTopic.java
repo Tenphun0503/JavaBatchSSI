@@ -1,6 +1,8 @@
 package hw1.topic1;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class StringTopic {
     public static void main(String[] args) {
@@ -38,15 +40,21 @@ public class StringTopic {
 
     private static void p3() {
         String str1 = "https://www.amazon.com/demo?test=abc";
-        System.out.println(Arrays.toString(str1.split("[:/.?=]+")));
+        System.out.println(Arrays.toString(str1.split("[^a-z]+")));
     }
 
     private static void p4() {
-        String[] strings = {"https", "www", "amazon", "com", "demo", "test", "abc"};
+        List<String[]> list = new ArrayList<>();
+        String[] s1 = {"https", "www", "amazon", "com", "demo", "test", "abc"};
+        String[] s2 = {"Hello", "World"};
+        list.add(s1);
+        list.add(s2);
         StringBuilder sb = new StringBuilder();
-        for (String s : strings) {
-            sb.append(s).append(" ");
+        for (String[] s : list) {
+            for (String word : s) {
+                sb.append(word).append(" ");
+            }
         }
-        System.out.println(sb);
+        System.out.println(sb.toString().trim());
     }
 }
