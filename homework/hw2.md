@@ -146,19 +146,146 @@ but the `runSameTime()` method should return a string `B.getMethod A.getMethod`
 
 ## Topic: Java 8
 ### Problems:
-1. Define an interface “CreditCard” which contains fields (holderName, cardNumber, accountBalance, cardType), 
-and not-implemented method “isCardAcceptable” with argument cardType. 
-Define two classes “VisaCard” and “MasterCard” both should inherit this “CreditCard” interface, 
+1. Define an interface [CreditCard](../src/main/java/hw2/java8/p1/CreditCard.java) which contains fields (`holderName`, `cardNumber`, `accountBalance`, `cardType`), 
+and not-implemented method `isCardAcceptable()` with argument cardType. 
+Define two classes **VisaCard** and **MasterCard** both should inherit this `CreditCard` interface, 
 and you should define constructor for both classes and implement the “isCardAcceptable” method. 
 Now Add a default method “payBill(double bill)” and static method “refund(double amount)” to the interface. 
 Verify that VisaCard and MasterCard class can read these two methods (use Main method to verify).
-Use functional interface to implement Java 8 stream.map() function. 
-
-2. Define a “MyStream” class containing a functional interface and a static method “MyMap”.
-In main method, test your code by calling: MyStream.MyMap(list, o -> o *3) to multiple each element in the “list” by 3.
-"walabcwalexywalxzsfwalmx”  -- replace "wal" with "sams"
-"Eclipse eclipse Eclipse eclipse amc clip ECLIPSE" – count the occurrence of each unique word (ignore case), 
+   ```java
+   public interface CreditCard {
+       String holderName = "";
+       String cardNumber = "";
+       Double accountBalance = 0.0;
+       String cardType = "";
+   
+       boolean isCardAcceptable(String cardType);
+   
+       default void payBill(Double bill) {
+           System.out.println("Payment of $" + bill + " processed.");
+       }
+   
+       static void refund(double amount) {
+           System.out.println("Refund of $" + amount + " processed.");
+       }
+   }
+   
+   class VisaCard implements CreditCard{
+       String holderName;
+       String cardNumber;
+       Double accountBalance;
+       String cardType;
+   
+       @Override
+       public void payBill(Double bill) {
+           accountBalance -= bill;
+           CreditCard.super.payBill(bill);
+       }
+   
+       public VisaCard(String holderName, String cardNumber, Double accountBalance, String cardType) {
+           this.holderName = holderName;
+           this.cardNumber = cardNumber;
+           this.accountBalance = accountBalance;
+           this.cardType = cardType;
+       }
+   
+       @Override
+       public boolean isCardAcceptable(String cardType) {
+           return "Visa".equals(cardType);
+       }
+   }
+   
+   class MasterCard implements CreditCard{
+       String holderName;
+       String cardNumber;
+       Double accountBalance;
+       String cardType;
+   
+       @Override
+       public void payBill(Double bill) {
+           accountBalance -= bill;
+           CreditCard.super.payBill(bill);
+       }
+   
+       public MasterCard(String holderName, String cardNumber, Double accountBalance, String cardType) {
+           this.holderName = holderName;
+           this.cardNumber = cardNumber;
+           this.accountBalance = accountBalance;
+           this.cardType = cardType;
+       }
+   
+       @Override
+       public boolean isCardAcceptable(String cardType) {
+           return "Master".equals(cardType);
+       }
+   }
+   
+   class Main {
+       public static void main(String[] args) {
+           VisaCard visaCard = new VisaCard("John Doe", "123456789", 1000.0, "Visa");
+           MasterCard masterCard = new MasterCard("Jane Smith", "987654321", 2000.0, "MasterCard");
+   
+           visaCard.payBill(500.0);         // Payment of $500.0 processed.
+           masterCard.payBill(1000.0);      // Payment of $1000.0 processed.
+   
+           System.out.println("Visa Card Account Balance: $" + visaCard.accountBalance);    // Visa Card Account Balance: $500.0
+           System.out.println("MasterCard Account Balance: $" + masterCard.accountBalance); // MasterCard Account Balance: $1000.0
+   
+           CreditCard.refund(100.0);    // Refund of $100.0 processed.
+       }
+   }
+   ```
+2. Use functional interface to implement Java 8 `stream.map()` function. 
+Define a **MyStream** class containing a functional interface and a static method `MyMap()`.
+In main method, test your code by calling: `MyStream.MyMap(list, o -> o *3)` to multiple each element in the “list” by 3.
+   ```java
+   public class MyStream<T, R> {
+   
+       @FunctionalInterface
+       interface MyFunction<T, R> {
+           R apply(T t);
+       }
+   
+       static <T, R> List<R> myMap(List<T> list, MyFunction<T, R> function) {
+           List<R> res = new ArrayList<>();
+           for(T t : list){
+               res.add(function.apply(t));
+           }
+           return res;
+       }
+   }
+   
+   class Main {
+       public static void main(String[] args) {
+           List<Integer> numbers = List.of(1, 2, 3, 4, 5);
+           System.out.println(MyStream.myMap(numbers, o -> o*3));       // [3, 6, 9, 12, 15]
+       }
+   }
+   ```
+3. `"walabcwalexywalxzsfwalmx"`  -- replace `"wal"` with `"sams"`
+   ```java
+   public class Replace {
+       public static void main(String[] args) {
+           String s = "walabcwalexywalxzsfwalmx";
+           System.out.println(s.replaceAll("wal", "sams"));    // samsabcsamsexysamsxzsfsamsmx
+       }
+   }
+   ```
+4. `"Eclipse eclipse Eclipse eclipse amc clip ECLIPSE"` – count the occurrence of each unique word (ignore case), 
 return result as a map. For example (eclipse->5, amc->1, clip->1)
-
+   ```java
+   public class CountWords {
+      public static void main(String[] args) {
+         String s = "Eclipse eclipse Eclipse eclipse amc clip ECLIPSE";
+         Map<String, Long> map = Arrays.stream(s.split(" "))
+                 .map(String::toLowerCase)
+                 .collect(Collectors.groupingBy(
+                         word -> word,
+                         Collectors.counting()
+                 ));
+         System.out.println(map);   // {amc=1, clip=1, eclipse=5}
+      }
+   }
+   ```
 
  
