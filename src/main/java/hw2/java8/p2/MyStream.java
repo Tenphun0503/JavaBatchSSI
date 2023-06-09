@@ -19,6 +19,14 @@ public class MyStream<T, R> {
         return res;
     }
 
+    static List<Integer> myMap2(List<Integer> list, MyFunction<Integer, Integer> function) {
+        List<Integer> res = new ArrayList<>();
+        for(Integer i : list){
+            res.add(function.apply(i));
+        }
+        return res;
+    }
+
     // way 1, implements interface
     static class MyClass implements MyFunction<Integer,Integer>{
         @Override
