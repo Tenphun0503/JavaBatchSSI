@@ -418,4 +418,4 @@ public class DocumentController {
 #### Update: `/documents`
 ![update.png](hw3Img/update.png)
 #### Delete: `/documents/id`
-![delete.png](delete.png)
+![delete.png](hw3Img/delete.png)
