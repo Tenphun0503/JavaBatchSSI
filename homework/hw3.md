@@ -113,8 +113,8 @@ VALUES (121, 'P1', 8000),
    ```
 
 ---
-### Topic: Spring
-Write a document Service
+## Topic: Spring
+### Write a document Service  
 Implement APIs so that users can `create`/`delete`/`update`/`list`/`get` document(s).  
 Please follow `RESTFUL API` design for http method, url path and return code.
 
@@ -125,8 +125,297 @@ class Document{
     String content;
 }
 ```
-Additional requirements:
-`Create` API should handle the already existing error, and return proper http code.
-`Get`/`Delete`/`Update` API should handle the not exist error, and return proper http code.
-Use Controller/Service/DAO to separate the logic. In DAO, simply use a HashMap to store the document data.
-For `Create` API, the controller should only accept json http content and return proper http code if not json.
+Additional requirements:  
+- `Create` API should handle the already existing error, and return proper http code.  
+- `Get`/`Delete`/`Update` API should handle the not exist error, and return proper http code.
+- Use Controller/Service/DAO to separate the logic. 
+- In DAO, simply use a HashMap to store the document data.
+- For `Create` API, the controller should only accept json http content and return proper http code if not json.
+
+### Codes
+#### Document Entity
+```java
+package com.ping.docservice.entity;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class Document implements Serializable {
+    public static final long serialVersionUID = 1L;
+    Integer id;
+    String content;
+
+    public Document() {
+    }
+
+    public Document(Integer id, String content) {
+        this.id = id;
+        this.content = content;
+    }
+}
+```
+#### R Generic Respond Wrapper Class
+```java
+package com.ping.docservice.common;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * Generic Respond Wrapper Class
+ * @param <T>: Class of Entity
+ */
+
+@Data
+public class R<T>{
+
+    private int code; // HTTP code
+    private String msg;
+    private T data;
+
+    public static <T> R<T> success(T object){
+        R<T> r = new R<>();
+        r.code = 200;
+        r.data = object;
+        return r;
+    }
+
+    public static <T> R<T> error(int code, String msg){
+        R<T> r = new R<>();
+        r.code = code;
+        r.msg = msg;
+        return r;
+    }
+}
+```
+#### DocumentDao Interface
+```java
+package com.ping.docservice.dao;
+
+import com.ping.docservice.entity.Document;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DocumentDao {
+    void create(Document doc);
+    void delete(Integer id);
+    void update(Document doc);
+    List<Document> getAll();
+    Document getById(Integer id);
+}
+```
+#### DocumentDaoImpl
+```java
+package com.ping.docservice.dao;
+
+import com.ping.docservice.entity.Document;
+import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+@Repository
+public class DocumentDaoImpl implements DocumentDao{
+    private final HashMap<Integer, String> documents;
+
+    public DocumentDaoImpl(){
+        documents = new HashMap<>();
+    }
+    @Override
+    public void create(Document doc) {
+        documents.put(doc.getId(), doc.getContent());
+    }
+
+    @Override
+    public void delete(Integer id) {
+        documents.remove(id);
+    }
+
+    @Override
+    public void update(Document doc) {
+        documents.put(doc.getId(), doc.getContent());
+    }
+
+    @Override
+    public List<Document> getAll() {
+        List<Document> docs = new ArrayList<>();
+        documents.forEach((key, value) -> {
+            Document doc = new Document(key, value);
+            docs.add(doc);
+        });
+        return docs;
+    }
+
+    @Override
+    public Document getById(Integer id) {
+        return new Document(id, documents.get(id));
+    }
+}
+```
+#### DocumentService Interface
+```java
+package com.ping.docservice.service;
+
+import com.ping.docservice.common.R;
+import com.ping.docservice.entity.Document;
+
+import java.util.List;
+
+public interface DocumentService {
+    R<Document> create(Document document);
+    R<Document> delete(Integer id);
+    R<Document> update(Document doc);
+    R<List<Document>> getAll();
+    R<Document> getById(Integer id);
+}
+```
+#### DocumentServiceImpl
+```java
+package com.ping.docservice.service;
+
+import com.ping.docservice.common.R;
+import com.ping.docservice.dao.DocumentDao;
+import com.ping.docservice.entity.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class DocumentServiceImpl implements DocumentService{
+    @Autowired
+    DocumentDao documentDao;
+
+    /**
+     * Create API creates a new record
+     * It handles the already existing error, and return general return object
+     * @return '200' for successful creation; '409' for already existing error
+     */
+    @Override
+    public R<Document> create(Document document) {
+        System.out.println(documentDao.getById(document.getId()));
+        if(documentDao.getById(document.getId()).getContent() != null){
+            return R.error(409, "Document already exists");
+        }
+        documentDao.create(document);
+        return R.success(document);
+    }
+
+    /**
+     * Delete API deletes an existing record
+     * It handles the not exist error
+     * @return '200' for successful deletion; '409' for not exist error
+     */
+    @Override
+    public R<Document> delete(Integer id) {
+        if(documentDao.getById(id).getContent() == null){
+            return R.error(409, "Document does not exist");
+        }
+        documentDao.delete(id);
+        return R.success(null);
+    }
+
+    /**
+     * Update API updates an existing record
+     * It handles the not exist error
+     * @return '200' for successful update; '409' for not exist error
+     */
+    @Override
+    public R<Document> update(Document doc) {
+        if(documentDao.getById(doc.getId()).getContent() == null){
+            return R.error(409, "Document does not exist");
+        }
+        documentDao.update(doc);
+        return R.success(doc);
+    }
+
+    /**
+     * GetAll API gets all existing record
+     * @return '200' for successful query;
+     */
+    @Override
+    public R<List<Document>> getAll() {
+        return R.success(documentDao.getAll());
+    }
+
+    /**
+     * GetById API get an existing record by id
+     * It handles the not exist error
+     * @return '200' for successful query; '409' for not exist error
+     */
+    @Override
+    public R<Document> getById(Integer id) {
+        if(documentDao.getById(id).getContent() == null){
+            return R.error(409, "Document does not exist");
+        }
+        return R.success(documentDao.getById(id));
+    }
+}
+```
+#### DocumentController
+```java
+package com.ping.docservice.controller;
+
+import com.ping.docservice.common.R;
+import com.ping.docservice.entity.Document;
+import com.ping.docservice.service.DocumentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/documents")
+public class DocumentController {
+    @Autowired
+    private DocumentService documentService;
+
+    @PostMapping
+    public R<Document> create(@RequestBody Document document){
+        System.out.println("Create...");
+        return documentService.create(document);
+    }
+
+    @DeleteMapping("/{id}")
+    public R<Document> delete(@PathVariable Integer id){
+        System.out.println("Delete...");
+        return documentService.delete(id);
+    }
+
+    @PutMapping
+    public R<Document> update(@RequestBody Document updatedDocument) {
+        System.out.println("Update...");
+        return documentService.update(updatedDocument);
+    }
+
+    @GetMapping
+    public R<List<Document>> getAll(){
+        System.out.println("Get All...");
+        return documentService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public R<Document> getById(@PathVariable Integer id){
+        System.out.println("Get by Id...");
+        return documentService.getById(id);
+    }
+}
+```
+
+### Results
+#### Post: `/documents`
+![post.png](hw3Img/post.png)
+#### GetById: `/documents/id`
+![getById.png](hw3Img/getById.png)
+#### GetAll: `/documents`
+![getAll.png](hw3Img/getAll.png)
+#### Update: `/documents`
+![update.png](hw3Img/update.png)
+#### Delete: `/documents/id`
+![delete.png](delete.png)
