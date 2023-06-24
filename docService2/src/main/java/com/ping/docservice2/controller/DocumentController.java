@@ -60,4 +60,6 @@ public class DocumentController {
     public ResponseEntity<?> getAll(){
         return ResponseEntity.status(HttpStatus.OK).body(documentService.getAll());
     }
+
+    // TODO: Use @RestControllerAdvice to handle exceptions together
 }
